@@ -18,19 +18,25 @@
 <body>
 
     <main class="container">
-        <h1>数当てゲーム (1~20)</h1>
+        <h1>数当てゲーム (1~100)</h1>
 
         <div id="guessGame">
             <label for="guessField">予想: </label>
-            <input type="number" min="1" max="20" id="guessField">
+            <input type="number" min="1" max="100" id="guessField" style="border: 1px solid gray">
             <input type="submit" value="予想を入力" id="guessSubmit">
+            <p id="limit"></p>
             <p id="guessResult"></p>
+            <input type="button" value="リセットボタン" id="resetButton"
+                style="background-color: #ca0000; border: none; border-radius: calc(infinity * 1px);;">
         </div>
     </main>
 
     <script>
+        //試行回数の制限
+        let count = 10;
+
         // 1から20までのランダムな整数を生成し、コンソールにログを出力
-        let answerNumber = Math.floor(Math.random() * 20) + 1;
+        let answerNumber = Math.floor(Math.random() * 100) + 1;
         console.log('正解は' + answerNumber);
 
         // 数値入力フィールドを取得
@@ -38,25 +44,64 @@
 
         // submitボタンを取得
         let guessSubmit = document.querySelector('#guessSubmit');
+
         // 結果を表示する要素を取得
         let guessResult = document.querySelector('#guessResult');
 
+        // 試行回数の制限を表示する要素を取得
+        let limit = document.querySelector('#limit');
+
         // ユーザーの入力をチェックし、結果を表示
         function checkGuess() {
-            // ユーザの入力した値を取得
-            let userGuess = Number(guessField.value);
 
-            if (userGuess === answerNumber) { // ユーザの入力が正解
-                guessResult.textContent = '正解です！';
-            } else if (userGuess < answerNumber) { // ユーザの入力が正解より小さい
-                guessResult.textContent = 'もっと大きいです';
-            } else if (userGuess > answerNumber) { // ユーザの入力が正解より大きい
-                guessResult.textContent = 'もっと小さいです';
+            if (!guessField.value) {
+                guessResult.textContent = '数値が未入力です';
+                guessField.style.border = "1px solid red";
+            } else {
+                // ユーザの入力した値を取得
+                let userGuess = Number(guessField.value);
+
+                guessField.style.border = "1px solid gray";
+
+                //試行回数の制限を実装
+                count--;
+                if (count > 0) {
+                    limit.textContent = `残り可能回数:${count}回`;
+                } else {
+                    limit.textContent = `ゲームオーバー`;
+                }
+
+                if (userGuess === answerNumber) { // ユーザの入力が正解
+                    guessResult.textContent = '正解です！';
+                    limit.textContent = '';
+                } else if (userGuess < answerNumber) { // ユーザの入力が正解より小さい
+                    guessResult.textContent = 'もっと大きいです';
+                } else if (userGuess > answerNumber) { // ユーザの入力が正解より大きい
+                    guessResult.textContent = 'もっと小さいです';
+                }
             }
+        }
+
+        function reset() {
+            answerNumber = Math.floor(Math.random() * 100) + 1;
+            console.log('正解は' + answerNumber);
+
+            count = 10;
+
+            limit.textContent = "";
+            guessField.value = "";
+            guessResult.textContent = "";
+            guessField.style.border = "1px solid gray";
         }
 
         // submitがクリックされたときに、checkGuess関数を呼び出す
         guessSubmit.addEventListener('click', checkGuess);
+
+        // resetがクリックされたときに、reset関数を呼び出す
+        resetButton.addEventListener('click', reset);
+
+        console.log(`残り可能回数:${count}回`);
+
     </script>
 
 </body>
