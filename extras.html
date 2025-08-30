@@ -31,7 +31,7 @@
         }
 
         function setup() {
-            createCanvas(720, 400);
+            createCanvas(windowWidth, windowHeight); // 画面サイズいっぱい
             textSize(36);
             textAlign(CENTER, CENTER);
 
@@ -142,7 +142,7 @@ Click to play`;
             textAlign(CENTER, CENTER);
             textSize(28);
             let endText = `Finish!
-            
+
 Score: ${score}
 High Score: ${highScore}
 Click to restart`;
