@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <title>p5.js</title>
+    <style>
+        body {
+            margin: 0;
+            /* 余白を完全に削除 */
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.1/lib/p5.min.js"></script>
+</head>
+
+<body>
+
+    <script>
+
+        let circleX, circleY, circleRadius;
+        let circleMaximumRadius;
+        let score = 0;
+        let highScore;
+        let circleType; // 0=加点, 1=減点
+        let imgAdd, imgSub; // 加点・減点用画像
+        let gameState = "start"; // "start", "playing", "gameover"
+        let startTime; // ゲーム開始時刻（ミリ秒）
+
+        function preload() {
+            imgAdd = loadImage('add.png');   // 加点画像
+            imgSub = loadImage('sub.png');   // 減点画像
+        }
+
+        function setup() {
+            createCanvas(720, 400);
+            textSize(36);
+            textAlign(CENTER, CENTER);
+
+            // 保存済みハイスコアを取得
+            highScore = getItem('highScore');
+            if (highScore === null) {
+                highScore = 0;
+            }
+        }
+
+        function draw() {
+            background(20);
+
+            if (gameState === "start") {
+                showStartScreen();
+            } else if (gameState === "playing") {
+                imageMode(CENTER);
+                if (circleType === 0) {
+                    image(imgAdd, circleX, circleY, circleRadius * 2, circleRadius * 2);
+                } else {
+                    image(imgSub, circleX, circleY, circleRadius * 2, circleRadius * 2);
+                }
+
+                circleRadius -= 1;
+                if (circleRadius <= 0) {
+                    resetCircle(); // 円が消えたらリセット（ゲームオーバーにはしない）
+                }
+
+                // スコア表示
+                fill(220);
+                textSize(36);
+                textAlign(RIGHT, TOP);
+                text(score, width - 20, 20);
+
+                // 残り時間表示
+                let elapsed = (millis() - startTime) / 1000;
+                let remaining = max(0, 10 - int(elapsed));
+                textAlign(LEFT, TOP);
+                text(`Time: ${remaining}`, 20, 20);
+
+                // 10秒経過で終了
+                if (elapsed >= 10) {
+                    endGame();
+                }
+            } else if (gameState === "gameover") {
+                showEndScreen();
+            }
+        }
+
+        function startGame() {
+            score = 0;
+            circleMaximumRadius = min(width, height) / 6;
+            resetCircle();
+            startTime = millis(); // 開始時刻記録
+            gameState = "playing";
+        }
+
+        function resetCircle() {
+            circleRadius = circleMaximumRadius;
+            circleX = random(circleRadius, width - circleRadius);
+            circleY = random(circleRadius, height - circleRadius);
+            circleType = random([0, 1]); // ランダムに加点・減点
+        }
+
+        function mousePressed() {
+            if (gameState === "start" || gameState === "gameover") {
+                startGame();
+                return;
+            }
+
+            if (gameState === "playing") {
+                let distanceToCircle = dist(mouseX, mouseY, circleX, circleY);
+
+                if (distanceToCircle < circleRadius) {
+                    if (circleType === 0) {
+                        score += 1;
+                    } else {
+                        score = max(score - 1, 0);
+                    }
+                    resetCircle();
+                } else {
+                    resetCircle(); // 外クリックでスキップ
+                }
+            }
+        }
+
+        function endGame() {
+            // ハイスコア更新
+            highScore = max(highScore, score);
+            storeItem('highScore', highScore);
+            gameState = "gameover";
+        }
+
+        function showStartScreen() {
+            fill(220);
+            textAlign(CENTER, CENTER);
+            textSize(28);
+            let startText = `👊 Clicker
+👊 → ⭕️   🔥 → ❌
+
+High Score: ${highScore}
+Click to play`;
+            text(startText, width / 2, height / 2);
+        }
+
+        function showEndScreen() {
+            fill(220);
+            textAlign(CENTER, CENTER);
+            textSize(28);
+            let endText = `Finish!
+            
+Score: ${score}
+High Score: ${highScore}
+Click to restart`;
+            text(endText, width / 2, height / 2);
+        }
+        //         let circleX;
+        //         let circleY;
+        //         let circleRadius;
+        //         let circleMaximumRadius;
+        //         let circleColor;
+        //         let score = 0;
+        //         let highScore;
+
+        //         // 0 = 加点, 1 = 原点（ゲームオーバー扱い）
+        //         let circleType;
+
+        //         let img;
+
+        //         function preload() {
+        //             img = loadImage('example.png'); // 画像ファイルを読み込む
+        //         }
+
+        //         function draw() {
+        //             background(20);
+
+        //             // 画像を円の位置・サイズに合わせて描画
+        //             imageMode(CENTER);
+        //             image(img, circleX, circleY, circleRadius * 2, circleRadius * 2);
+        //         }
+
+        //         function setup() {
+        //             createCanvas(720, 400);
+        //             colorMode(HSB);
+        //             noStroke();
+        //             ellipseMode(RADIUS);
+        //             textSize(36);
+
+        //             // Get the last saved high score
+        //             highScore = getItem('high score');
+
+        //             // If no score was saved, start with a value of 0
+        //             if (highScore === null) {
+        //                 highScore = 0;
+        //             }
+        //         }
+
+        //         function draw() {
+        //             background(20);
+
+        //             // If the circle had not shrunk completely
+        //             if (circleRadius > 0) {
+        //                 // Draw the circle
+        //                 fill(circleColor);
+        //                 circle(circleX, circleY, circleRadius);
+        //                 describeElement('Circle', 'Randomly colored shrinking circle');
+
+        //                 // Shrink it
+        //                 circleRadius -= 1;
+
+        //                 // Show the score
+        //                 textAlign(RIGHT, TOP);
+        //                 fill(220);
+        //                 text(score, width - 20, 20);
+        //                 describeElement('Score', `Text with current score: ${score}`);
+        //             } else {
+        //                 // Otherwise show the start/end screen
+        //                 endGame();
+        //             }
+        //         }
+
+        //         function startGame() {
+        //             // Reset the score to 0
+        //             score = 0;
+
+        //             // Start with the circle's radius maximum at half the minimum canvas dimension
+        //             circleMaximumRadius = min(height / 2, width / 2);
+        //             resetCircle();
+        //         }
+
+        //         function endGame() {
+        //             // Pause the sketch
+        //             noLoop();
+
+        //             // Store the new high score
+        //             highScore = max(highScore, score);
+        //             storeItem('high score', highScore);
+
+        //             textAlign(CENTER, CENTER);
+        //             fill(220);
+        //             let startText = `Circle Clicker
+        //   Click the circle before it gets too small
+        //   Score: ${score}
+        //   High score: ${highScore}
+        //   Click to play`;
+        //             text(startText, 0, 0, width, height);
+        //             describeElement('Start text', `Text reading, "${startText}"`);
+        //         }
+
+        //         // function resetCircle() {
+        //         //     // Start with the circle's radius at its maximum value
+        //         //     circleRadius = circleMaximumRadius;
+        //         //     circleX = random(circleRadius, width - circleRadius);
+        //         //     circleY = random(circleRadius, height - circleRadius);
+        //         //     circleColor = color(random(240, 360), random(40, 80), random(50, 90));
+        //         // }
+
+        //         function resetCircle() {
+        //             circleRadius = circleMaximumRadius;
+        //             circleX = random(circleRadius, width - circleRadius);
+        //             circleY = random(circleRadius, height - circleRadius);
+
+        //             // 0 = 加点、1 = 原点
+        //             circleType = random([0, 1]);
+
+        //             if (circleType === 0) {
+        //                 circleColor = color(random(180, 240), 80, 90); // 青系
+        //             } else {
+        //                 circleColor = color(0, 80, 90); // 赤系
+        //             }
+        //         }
+
+        //         function mousePressed() {
+        //             // // If the game is unpaused
+        //             // if (isLooping() === true) {
+        //             //     // Check how far the mouse is from the circle
+        //             //     let distanceToCircle = dist(mouseX, mouseY, circleX, circleY);
+
+        //             //     // If the mouse is closer to the circle's center than the circle's radius,
+        //             //     // that means the player clicked on it
+        //             //     if (distanceToCircle < circleRadius) {
+        //             //         // Decrease the maximum radius, but don't go below 15
+        //             //         circleMaximumRadius = max(circleMaximumRadius - 1, 15);
+        //             //         resetCircle();
+
+        //             //         // Give the player a point
+        //             //         score += 1;
+        //             //     }
+        //             //     // If the game is paused
+        //             // } else {
+        //             //     // Start and unpause it
+        //             //     startGame();
+        //             //     loop();
+        //             // }
+
+        //             // ゲームが開始されていない場合はスタート
+        //             if (!isLooping()) {
+        //                 startGame();
+        //                 loop();
+        //                 return;
+        //             }
+
+        //             // クリック位置と円の距離
+        //             let distanceToCircle = dist(mouseX, mouseY, circleX, circleY);
+
+        //             if (distanceToCircle < circleRadius) {
+        //                 // 円をクリックした場合
+        //                 if (circleType === 0) {
+        //                     // 加点丸
+        //                     circleMaximumRadius = max(circleMaximumRadius - 1, 15);
+        //                     score += 1;
+        //                 } else {
+        //                     // 減点丸
+        //                     score = max(score - 1, 0); // スコアは0未満にならない
+        //                 }
+        //                 resetCircle();
+        //             } else {
+        //                 // 円以外をクリックした場合 → スキップ
+        //                 resetCircle();
+        //             }
+        //         }
+    </script>
+
+</body>
+
+</html>
